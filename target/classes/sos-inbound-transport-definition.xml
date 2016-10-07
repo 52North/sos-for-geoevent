@@ -1,0 +1,28 @@
+<transport name="SOSInboundTransport"
+	label="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_LBL}" contact="yourname@yourcompany.com"
+	version="10.3.1" domain="sample.transport.inbound" type="inbound">
+	<description>${org.n52.sensorweb.sos-transport.TRANSPORT_IN_DESC}
+	</description>
+	<propertyDefinitions>
+		<propertyDefinition propertyName="url"
+			label="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_URL_LBL}"
+			description="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_URL_DESC}"
+			propertyType="String" defaultValue="" mandatory="true" readOnly="false" />
+		<propertyDefinition propertyName="offering"
+			label="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_OFFERING_LBL}"
+			description="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_OFFERING_DESC}"
+			propertyType="String" defaultValue="" mandatory="true" readOnly="false" />
+		<propertyDefinition propertyName="observedProperty"
+			label="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_OBSERVED_PROPERTY_LBL}"
+			description="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_OBSERVED_PROPERTY_DESC}"
+			propertyType="String" defaultValue="" mandatory="true" readOnly="false" />
+		<propertyDefinition propertyName="procedure"
+			label="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_PROCEDURE_LBL}"
+			description="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_PROCEDURE_DESC}"
+			propertyType="String" defaultValue="" mandatory="true" readOnly="false" />
+		<!-- <propertyDefinition propertyName="featureOfInterest" label="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_FEATURE_OF_INTEREST_LBL}" 
+			description="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_FEATURE_OF_INTEREST_DESC}" 
+			propertyType="String" defaultValue="" mandatory="false" readOnly="false" 
+			/> -->
+	</propertyDefinitions>
+</transport>
