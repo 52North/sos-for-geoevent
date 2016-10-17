@@ -20,9 +20,9 @@
 			label="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_PROCEDURE_LBL}"
 			description="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_PROCEDURE_DESC}"
 			propertyType="String" defaultValue="" mandatory="true" readOnly="false" />
-		<!-- <propertyDefinition propertyName="featureOfInterest" label="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_FEATURE_OF_INTEREST_LBL}" 
-			description="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_FEATURE_OF_INTEREST_DESC}" 
-			propertyType="String" defaultValue="" mandatory="false" readOnly="false" 
-			/> -->
+		<propertyDefinition propertyName="requestInterval"
+			label="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_INTERVAL_LBL}"
+			description="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_INTERVAL_DESC}"
+			propertyType="Integer" defaultValue="" mandatory="true" readOnly="false" />
 	</propertyDefinitions>
 </transport>

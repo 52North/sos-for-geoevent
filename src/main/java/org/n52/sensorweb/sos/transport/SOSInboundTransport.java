@@ -9,13 +9,10 @@ import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 
 import com.esri.ges.core.component.ComponentException;
@@ -33,7 +30,6 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 	 * See {@link BundleLogger} for more info.
 	 */
 	private static final BundleLogger LOGGER = BundleLoggerFactory.getLogger(SOSInboundTransport.class);
-	private final int REQUEST_INTERVAL = 10000;
 	private final String REQUEST_KEY = "request";
 	private final String SERVICE_KEY = "service";
 	private final String VERSION_KEY = "version";
@@ -51,6 +47,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 	private String offering;
 	private String observedProperty;
 	private String procedure;
+	private int requestInterval;
 	private HttpGet httpGet;
 
 	private Thread thread = null;
@@ -91,6 +88,14 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 				procedure = value;
 			}
 		}
+		requestInterval = 10000; // default
+		if (getProperty("requestInterval").isValid()) {
+			int value = (Integer) getProperty("requestInterval").getValue();
+			if (value > 0 && value != requestInterval) {
+				//requestInterval is in milliseconds
+				requestInterval = value*1000;
+			}
+		}
 	}
 
 	@SuppressWarnings("incomplete-switch")
@@ -118,7 +123,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 			httpGet = createHttpGet();
 			while (getRunningState() == RunningState.STARTED) {
 				receiveData();
-				Thread.sleep(REQUEST_INTERVAL);
+				Thread.sleep(requestInterval);
 			}
 
 		} catch (Throwable ex) {
@@ -156,7 +161,6 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 			bb.clear();
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			setRunningState(RunningState.ERROR);
 		} catch (BufferOverflowException boe) {
@@ -168,7 +172,6 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 				httpclient.close();
 				response.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -210,6 +213,8 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 		URI uri;
 		try {
 			URIBuilder builder = new URIBuilder();
+
+			// Create a valid URI
 			if (url.startsWith(urlPrefix)) {
 				uri = new URI(url);
 			} else {
@@ -217,6 +222,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 				sb.insert(0, urlPrefix);
 				uri = new URI(sb.toString());
 			}
+			// Create the URI for the request with all parameters
 			URI fullUri = builder.setScheme("http").setHost(uri.getHost()).setPath(uri.getPath())
 					.setParameter(REQUEST_KEY, REQUEST_VALUE).setParameter(SERVICE_KEY, SERVICE_VALUE)
 					.setParameter(VERSION_KEY, VERSION_VALUE).setParameter(OFFERING_KEY, offering)
@@ -224,7 +230,6 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 					.setParameter(RESPONSE_FORMAT_KEY, RESPONSE_FORMAT_XML).build();
 			httpGet = new HttpGet(fullUri);
 		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return httpGet;
