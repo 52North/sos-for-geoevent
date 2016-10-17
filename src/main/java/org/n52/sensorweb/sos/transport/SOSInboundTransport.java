@@ -11,9 +11,12 @@ import java.nio.ByteBuffer;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 
 import com.esri.ges.core.component.ComponentException;
 import com.esri.ges.core.component.RunningException;
@@ -48,9 +51,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 	private String offering;
 	private String observedProperty;
 	private String procedure;
-	// private String featureOfInterest;
-
-	private HttpClient client;
+	private HttpGet httpGet;
 
 	private Thread thread = null;
 
@@ -90,116 +91,6 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 				procedure = value;
 			}
 		}
-
-		/*
-		 * featureOfInterest = ""; if
-		 * (getProperty("featureOfInterest").isValid()) { String value =
-		 * (String) getProperty("featureOfInterest").getValue(); if
-		 * (!value.trim().equals("")) { featureOfInterest = value; } }
-		 */
-	}
-
-	public void run() {
-		try {
-			applyProperties();
-			HttpGet httpGet = createHttpGet();
-			client = HttpClientBuilder.create().build();
-			setRunningState(RunningState.STARTED);
-			while (getRunningState() == RunningState.STARTED) {
-				receiveData(httpGet);
-				Thread.sleep(REQUEST_INTERVAL);
-			}			
-
-		} 
-		catch(InterruptedException ex){
-			thread.interrupt();
-		}
-		catch (Throwable ex) {
-			LOGGER.error(ex.getMessage(), ex);
-			setRunningState(RunningState.ERROR);
-		}
-
-	}
-
-	/**
-	 * Receive the raw byte data from the GetObservation request
-	 * @param httpGet HTTP-GET request for the GetObservation request
-	 */
-	private void receiveData(HttpGet httpGet) {
-		// TODO Auto-generated method stub
-		HttpResponse response;
-		ByteBuffer bb = null;
-
-		try {
-			response = client.execute(httpGet);
-			HttpEntity entity = response.getEntity();
-			InputStream inStream = entity.getContent();
-
-			byte[] data = getByteArrayFromInputStream(inStream);
-
-			bb = ByteBuffer.allocate(data.length);
-
-			bb.put(data);
-			bb.flip();
-			byteListener.receive(bb, "");
-			bb.clear();
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			setRunningState(RunningState.ERROR);
-		} catch (BufferOverflowException boe) {
-			LOGGER.error("BUFFER_OVERFLOW_ERROR", boe);
-			bb.clear();
-			setRunningState(RunningState.ERROR);
-		}
-	}
-
-	/**
-	 * Creates an InputStream into a byte array
-	 * 
-	 * @param is
-	 *            InputStream
-	 * @return byte array
-	 */
-	private byte[] getByteArrayFromInputStream(InputStream is) {
-		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-		int nRead;
-		int size = 1024;
-		byte[] data = new byte[size];
-
-		try {
-			while ((nRead = is.read(data, 0, data.length)) != -1) {
-				buffer.write(data, 0, nRead);
-			}
-			buffer.flush();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return buffer.toByteArray();
-	}
-
-	/**
-	 * Creates a HTTP-GET request for the SOS GetObservation request from the
-	 * specified URL and parameter properties.
-	 * 
-	 * @return GetObservation request as HTTP-GET
-	 */
-	private HttpGet createHttpGet() {
-		HttpGet httpGet = null;
-		try {
-			URI uri = new URIBuilder().setScheme("http").setHost(url).setParameter(REQUEST_KEY, REQUEST_VALUE)
-					.setParameter(SERVICE_KEY, SERVICE_VALUE).setParameter(VERSION_KEY, VERSION_VALUE)
-					.setParameter(OFFERING_KEY, offering).setParameter(OBSERVED_PROPERTY_KEY, observedProperty)
-					.setParameter(PROCEDER_KEY, procedure).setParameter(RESPONSE_FORMAT_KEY, RESPONSE_FORMAT_XML)
-					.build();
-			httpGet = new HttpGet(uri);
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return httpGet;
 	}
 
 	@SuppressWarnings("incomplete-switch")
@@ -220,13 +111,123 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 		}
 	}
 
-	public synchronized void stop() {
-		if (getRunningState()==RunningState.STARTED)
-		{
-			setRunningState(RunningState.STOPPING);
-			thread.interrupt();
-		}
-		setRunningState(RunningState.STOPPED);
+	public void run() {
+		try {
+			applyProperties();
+			setRunningState(RunningState.STARTED);
+			httpGet = createHttpGet();
+			while (getRunningState() == RunningState.STARTED) {
+				receiveData();
+				Thread.sleep(REQUEST_INTERVAL);
+			}
 
+		} catch (Throwable ex) {
+			LOGGER.error(ex.getMessage(), ex);
+			setRunningState(RunningState.ERROR);
+		}
 	}
+
+	public synchronized void stop() {
+		setRunningState(RunningState.STOPPING);
+		setRunningState(RunningState.STOPPED);
+	}
+
+	/**
+	 * Receive the raw byte data from the GetObservation request
+	 * 
+	 * @param httpGet
+	 *            HTTP-GET request for the GetObservation request
+	 */
+	private void receiveData() {
+		CloseableHttpResponse response = null;
+		ByteBuffer bb = null;
+		CloseableHttpClient httpclient = HttpClients.createDefault();
+
+		try {
+			response = httpclient.execute(httpGet);
+			HttpEntity entity = response.getEntity();
+			InputStream inStream = entity.getContent();
+
+			byte[] data = getByteArrayFromInputStream(inStream);
+			bb = ByteBuffer.allocate(data.length);
+			bb.put(data);
+			bb.flip();
+			byteListener.receive(bb, "");
+			bb.clear();
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			setRunningState(RunningState.ERROR);
+		} catch (BufferOverflowException boe) {
+			LOGGER.error("BUFFER_OVERFLOW_ERROR", boe);
+			bb.clear();
+			setRunningState(RunningState.ERROR);
+		} finally {
+			try {
+				httpclient.close();
+				response.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * Creates an InputStream from a byte array
+	 * 
+	 * @param is
+	 *            InputStream
+	 * @return byte array
+	 */
+	private byte[] getByteArrayFromInputStream(InputStream is) {
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		int nRead;
+		int size = 1024;
+		byte[] data = new byte[size];
+
+		try {
+			while ((nRead = is.read(data, 0, data.length)) != -1) {
+				buffer.write(data, 0, nRead);
+			}
+			buffer.flush();
+		} catch (IOException e) {
+			LOGGER.error(e.getMessage());
+		}
+		return buffer.toByteArray();
+	}
+
+	/**
+	 * Creates a HTTP-GET request for the SOS GetObservation request from the
+	 * specified URL and parameter properties.
+	 * 
+	 * @return GetObservation request as HTTP-GET
+	 */
+	private HttpGet createHttpGet() {
+		HttpGet httpGet = null;
+		String urlPrefix = "http://";
+		URI uri;
+		try {
+			URIBuilder builder = new URIBuilder();
+			if (url.startsWith(urlPrefix)) {
+				uri = new URI(url);
+			} else {
+				StringBuilder sb = new StringBuilder(url);
+				sb.insert(0, urlPrefix);
+				uri = new URI(sb.toString());
+			}
+			URI fullUri = builder.setScheme("http").setHost(uri.getHost()).setPath(uri.getPath())
+					.setParameter(REQUEST_KEY, REQUEST_VALUE).setParameter(SERVICE_KEY, SERVICE_VALUE)
+					.setParameter(VERSION_KEY, VERSION_VALUE).setParameter(OFFERING_KEY, offering)
+					.setParameter(OBSERVED_PROPERTY_KEY, observedProperty).setParameter(PROCEDER_KEY, procedure)
+					.setParameter(RESPONSE_FORMAT_KEY, RESPONSE_FORMAT_XML).build();
+			httpGet = new HttpGet(fullUri);
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return httpGet;
+	}
+
 }

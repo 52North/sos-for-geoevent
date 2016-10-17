@@ -1,6 +1,6 @@
 <transport name="SOSInboundTransport"
 	label="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_LBL}" contact="yourname@yourcompany.com"
-	version="10.3.1" domain="sample.transport.inbound" type="inbound">
+	version="10.4.1" domain="sample.transport.inbound" type="inbound">
 	<description>${org.n52.sensorweb.sos-transport.TRANSPORT_IN_DESC}
 	</description>
 	<propertyDefinitions>
