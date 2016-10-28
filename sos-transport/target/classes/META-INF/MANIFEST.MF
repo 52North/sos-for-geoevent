@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1477656451321
+Build-Jdk: 1.8.0_111
+Built-By: Seba
+Bundle-ManifestVersion: 2
+Bundle-Name: Esri :: GeoEvent :: Transport :: SOS
+Bundle-SymbolicName: org.n52.sensorweb.sos-transport
+Bundle-Version: 10.4.1
+Created-By: Apache Maven Bundle Plugin
+Embed-Dependency: *;scope=compile|runtime;inline=true
+Tool: Bnd-3.2.0.201605172007

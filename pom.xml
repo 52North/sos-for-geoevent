@@ -3,11 +3,23 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.n52.sensorweb</groupId>
-	<artifactId>sos-transport</artifactId>
+
+	<groupId>org.n52.sensorweb.parent</groupId>
+	<artifactId>sos</artifactId>
 	<version>10.4.1</version>
-	<packaging>bundle</packaging>
-	<name>SOS Transport</name>
+	<packaging>pom</packaging>
+
+	<name>Esri :: GeoEvent :: SOS</name>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
+	</properties>
+
+	<modules>
+		<module>sos-transport</module>
+	</modules>
+
 	<dependencies>
 		<dependency>
 			<groupId>com.esri.geoevent.sdk</groupId>
@@ -16,6 +28,7 @@
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
+	
 	<build>
 		<plugins>
 			<plugin>
@@ -30,21 +43,8 @@
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
-				<version>3.2.0</version>
+				<version>${maven.bundle.plugin.version}</version>
 				<extensions>true</extensions>
-				<configuration>
-					<instructions>
-						<Build-Number>${buildId}</Build-Number>
-						<Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
-						<Bundle-ContactAddress>${sdk.contact.address}</Bundle-ContactAddress>
-						<Bundle-Version>${project.version}</Bundle-Version>
-						<Export-Package />
-						<Embed-Dependency>
-							*;scope=compile|runtime;inline=true
-						</Embed-Dependency>
-						<Private-Package>org.n52.sensorweb.sos.transport</Private-Package>
-					</instructions>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
