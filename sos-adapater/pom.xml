@@ -11,7 +11,7 @@
 	</parent>
 
 	<groupId>org.n52.sensorweb</groupId>
-	<artifactId>sos-adapater</artifactId>
+	<artifactId>sos-adapter</artifactId>
 	<packaging>bundle</packaging>
 	<name>52north :: GeoEvent :: Adapter :: SOS</name>
 	

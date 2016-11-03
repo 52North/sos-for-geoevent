@@ -50,7 +50,7 @@ public class SOSInboundAdapterDefinition extends AdapterDefinitionBase
      * your properties file.
      * 
      */
-    return "${n52.sensorweb.sos-adapter.ADAPTER_IN_LABEL}";
+    return "${org.n52.sensorweb.sos-adapter.ADAPTER_IN_LABEL}";
   }
 
   @Override
@@ -67,7 +67,7 @@ public class SOSInboundAdapterDefinition extends AdapterDefinitionBase
      * framework will attempt to replace the string with a localized string in
      * your properties file.
      */
-    return "${n52.sensorweb.sos-adapter.ADAPTER_IN_DESC}";
+    return "${org.n52.sensorweb.sos-adapter.ADAPTER_IN_DESC}";
   }
 
   @Override
