@@ -161,7 +161,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 			bb.clear();
 
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error(e.getMessage());
 			setRunningState(RunningState.ERROR);
 		} catch (BufferOverflowException boe) {
 			LOGGER.error("BUFFER_OVERFLOW_ERROR", boe);
@@ -172,7 +172,8 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 				httpclient.close();
 				response.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				LOGGER.error(e.getMessage());
+				setRunningState(RunningState.ERROR);
 			}
 		}
 	}
@@ -197,6 +198,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 			buffer.flush();
 		} catch (IOException e) {
 			LOGGER.error(e.getMessage());
+			setRunningState(RunningState.ERROR);
 		}
 		return buffer.toByteArray();
 	}
@@ -230,7 +232,8 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 					.setParameter(RESPONSE_FORMAT_KEY, RESPONSE_FORMAT_XML).build();
 			httpGet = new HttpGet(fullUri);
 		} catch (URISyntaxException e) {
-			e.printStackTrace();
+			LOGGER.error(e.getMessage());
+			setRunningState(RunningState.ERROR);
 		}
 		return httpGet;
 	}
