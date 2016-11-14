@@ -21,6 +21,10 @@
 			<artifactId>jaxb-api-osgi</artifactId>
 			<version>2.2.7</version>
 		</dependency>	
+                <dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+                </dependency>
 	</dependencies>
 
 	<build>
