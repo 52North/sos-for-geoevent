@@ -37,9 +37,16 @@ public class SOSInboundAdapter extends InboundAdapterBase {
 	 * See {@link BundleLogger} for more info.
 	 */
 	private static final BundleLogger LOGGER = BundleLoggerFactory.getLogger(SOSInboundAdapter.class);
+        private final ObservationUnmarshaller observationParser;
 
 	public SOSInboundAdapter(AdapterDefinition definition) throws ComponentException {
 		super(definition);
+            try {
+                this.observationParser = new ObservationUnmarshaller();
+            } catch (JAXBException ex) {
+                LOGGER.warn(ex.getMessage(), ex);
+                throw new ComponentException(ex.getMessage());
+            }
 	}
 
 	private class SensorDataEventBuilder implements Runnable {
@@ -55,11 +62,8 @@ public class SOSInboundAdapter extends InboundAdapterBase {
 		}
 
 		private void buildGeoEvents() {
-			JAXBContext jc;
 			try {
-				jc = JAXBContext.newInstance(ObservationCollection.class);
-				Unmarshaller unmarshaller = jc.createUnmarshaller();
-				ObservationCollection collection = (ObservationCollection) unmarshaller.unmarshal(sensorDataInputStream);
+                                ObservationCollection collection = observationParser.readObservationCollection(sensorDataInputStream);
 				Observation observation=collection.getMember().getObservation();
 				String procedure=observation.getProcedure().getProcedure();
 				
