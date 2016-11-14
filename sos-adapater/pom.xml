@@ -14,7 +14,15 @@
 	<artifactId>sos-adapter</artifactId>
 	<packaging>bundle</packaging>
 	<name>52north :: GeoEvent :: Adapter :: SOS</name>
-	
+
+	<dependencies>
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api-osgi</artifactId>
+			<version>2.2.7</version>
+		</dependency>	
+	</dependencies>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -27,11 +35,16 @@
 						<Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
 						<Bundle-ContactAddress>${sdk.contact.address}</Bundle-ContactAddress>
 						<Bundle-Version>${project.version}</Bundle-Version>
-						<Export-Package />
+						<Private-Package>org.n52.sensorweb.sos.adapter</Private-Package>
+						<Export-Package>
+						net.opengis.gml,
+						net.opengis.om.x10,
+						net.opengis.sa.x10,
+						net.opengis.swe.x101
+						</Export-Package>
 						<Embed-Dependency>
 							*;scope=compile|runtime;inline=true
 						</Embed-Dependency>
-						<Private-Package>org.n52.sensorweb.sos.adapter</Private-Package>
 					</instructions>
 				</configuration>
 			</plugin>

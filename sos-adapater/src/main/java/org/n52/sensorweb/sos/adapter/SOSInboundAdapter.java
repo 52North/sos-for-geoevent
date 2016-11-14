@@ -1,7 +1,16 @@
 package org.n52.sensorweb.sos.adapter;
 
-import java.nio.BufferUnderflowException;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 
 import com.esri.core.geometry.MapGeometry;
 import com.esri.core.geometry.Point;
@@ -10,73 +19,117 @@ import com.esri.ges.adapter.AdapterDefinition;
 import com.esri.ges.adapter.InboundAdapterBase;
 import com.esri.ges.core.component.ComponentException;
 import com.esri.ges.core.geoevent.FieldException;
+import com.esri.ges.core.geoevent.FieldGroup;
 import com.esri.ges.core.geoevent.GeoEvent;
+import com.esri.ges.core.geoevent.GeoEventDefinition;
 import com.esri.ges.framework.i18n.BundleLogger;
 import com.esri.ges.framework.i18n.BundleLoggerFactory;
 import com.esri.ges.messaging.MessagingException;
 
-public class SOSInboundAdapter extends InboundAdapterBase
-{
-  /**
-   * Initialize the i18n Bundle Logger
-   * 
-   * See {@link BundleLogger} for more info.
-   */
-  private static final BundleLogger LOGGER = BundleLoggerFactory.getLogger(SOSInboundAdapter.class);
+import net.opengis.gml.FeatureMember;
+import net.opengis.om.x10.Observation;
+import net.opengis.om.x10.ObservationCollection;
 
-  public SOSInboundAdapter(AdapterDefinition definition) throws ComponentException
-  {
-    super(definition);
-  }
+public class SOSInboundAdapter extends InboundAdapterBase {
+	/**
+	 * Initialize the i18n Bundle Logger
+	 * 
+	 * See {@link BundleLogger} for more info.
+	 */
+	private static final BundleLogger LOGGER = BundleLoggerFactory.getLogger(SOSInboundAdapter.class);
 
-  @Override
-  public GeoEvent adapt(ByteBuffer buffer, String channelId)
-  {
-    buffer.mark();
-    try
-    {
-      // This is how you get a single byte of data.
-      // byte singleByte = buffer.get();
+	public SOSInboundAdapter(AdapterDefinition definition) throws ComponentException {
+		super(definition);
+	}
 
-      // This is how you would get a fixed number of bytes from the buffer.
-      byte[] data = new byte[10];
-      buffer.get(data);
+	private class SensorDataEventBuilder implements Runnable {
+		private InputStream sensorDataInputStream;
 
-      // Create an instance of the message using the guid that we generated when
-      // we started up.
-      GeoEvent msg;
-      try
-      {
-        msg = geoEventCreator.create(((AdapterDefinition) definition).getGeoEventDefinition("SampleGeoEventDefinition").getGuid());
-        LOGGER.info("CREATED_MSG");
-      }
-      catch (MessagingException e)
-      {
-        return null;
-      }
+		public SensorDataEventBuilder(InputStream in) {
+			sensorDataInputStream = in;
+		}
 
-      // Populate the message with all the attribute values.
-      int i = 0;
-      msg.setField(i++, 1);
-      double x = 1.0;
-      double y = 1.0;
-      int wkid = 4326;
-      msg.setField(i++, new MapGeometry(new Point(x, y), SpatialReference.create(wkid)));
-      LOGGER.info("POPULATED_FIELDS_SUCCESSFULLY");
-      return msg;
-    }
-    catch (BufferUnderflowException ex)
-    {
-      buffer.reset();
-      return null;
-    }
-    catch (FieldException e)
-    {
-      // log the error message. String key (message to look up in properties
-      // file), exception to log, values to replace within the message (in
-      // order).
-      LOGGER.error("FIELD_SET_ERROR", e, e.getMessage());
-      return null;
-    }
-  }
+		@Override
+		public void run() {
+			buildGeoEvents();
+		}
+
+		private void buildGeoEvents() {
+			JAXBContext jc;
+			try {
+				jc = JAXBContext.newInstance(ObservationCollection.class);
+				Unmarshaller unmarshaller = jc.createUnmarshaller();
+				ObservationCollection collection = (ObservationCollection) unmarshaller.unmarshal(sensorDataInputStream);
+				Observation observation=collection.getMember().getObservation();
+				String procedure=observation.getProcedure().getProcedure();
+				
+				FeatureMember feature=observation.getFeatureOfInterest().getFeatureCollection().getFeatureMember();
+				String featureId=feature.getSamplingPoint().getId();
+				String featureDescription=feature.getSamplingPoint().getDescription();
+				String featureName=feature.getSamplingPoint().getName();
+				String featurePos=feature.getSamplingPoint().getPosition().getPoint().getPos();
+				String featurePosCoords[]=featurePos.split(" ");
+				Double featurePosX=Double.parseDouble(featurePosCoords[1]);
+				Double featurePosY=Double.parseDouble(featurePosCoords[0]);
+				Point pt=new Point(featurePosX,featurePosY);
+				MapGeometry geom=new MapGeometry(pt, SpatialReference.create(31466));
+				
+				String valueString=observation.getResult().getDataArray().getValues();
+				String values []=valueString.split(";");
+				
+				AdapterDefinition def=(AdapterDefinition)definition;
+				GeoEventDefinition geoDef=def.getGeoEventDefinition("SOS-Definition");
+				DateFormat formatter=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+				for (int i=0;i<values.length;i++){
+					String singleValues[]=values[i].split(",");
+					String valueTime=singleValues[0];
+					String valueFeature=singleValues[1];
+					String value=singleValues[2];
+					
+					GeoEvent sensorEvent=geoEventCreator.create(geoDef.getGuid());
+					sensorEvent.setField(0, procedure);
+					
+					FieldGroup featureGrp = sensorEvent.createFieldGroup("featureOfInterest");
+					featureGrp.setField(0, featureId);
+					featureGrp.setField(1, featureDescription);
+					featureGrp.setField(2, featureName);
+					featureGrp.setField(3, geom);
+					sensorEvent.setField(1, featureGrp);
+					
+					FieldGroup resultGrp=sensorEvent.createFieldGroup("result");
+					Date date=(Date)formatter.parse(valueTime);
+					resultGrp.setField(0,date);
+					resultGrp.setField(1, valueFeature);
+					resultGrp.setField(2, value);
+					sensorEvent.setField(2, resultGrp);
+					
+					geoEventListener.receive(sensorEvent);
+				}		
+				
+			} catch (JAXBException | MessagingException | FieldException | ParseException e) {
+				LOGGER.error(e.getMessage());
+			}
+		}
+}
+
+	@Override
+	public void receive(ByteBuffer buffer, String channelId) {
+		if (!buffer.hasRemaining()) {
+			return;
+		}
+
+		int size = buffer.remaining();
+		byte[] bytes = new byte[size];
+		buffer.get(bytes);
+		ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+		SensorDataEventBuilder builder = new SensorDataEventBuilder(in);
+		Thread thread = new Thread(builder);
+		thread.start();
+	}
+
+	@Override
+	public GeoEvent adapt(ByteBuffer buffer, String channelId) {
+
+		return null;
+	}
 }
