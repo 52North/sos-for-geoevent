@@ -8,9 +8,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 
 import com.esri.core.geometry.MapGeometry;
 import com.esri.core.geometry.Point;
@@ -37,16 +35,16 @@ public class SOSInboundAdapter extends InboundAdapterBase {
 	 * See {@link BundleLogger} for more info.
 	 */
 	private static final BundleLogger LOGGER = BundleLoggerFactory.getLogger(SOSInboundAdapter.class);
-        private final ObservationUnmarshaller observationParser;
+	private final ObservationUnmarshaller observationParser;
 
 	public SOSInboundAdapter(AdapterDefinition definition) throws ComponentException {
 		super(definition);
-            try {
-                this.observationParser = new ObservationUnmarshaller();
-            } catch (JAXBException ex) {
-                LOGGER.warn(ex.getMessage(), ex);
-                throw new ComponentException(ex.getMessage());
-            }
+		try {
+			this.observationParser = new ObservationUnmarshaller();
+		} catch (JAXBException ex) {
+			LOGGER.warn(ex.getMessage(), ex);
+			throw new ComponentException(ex.getMessage());
+		}
 	}
 
 	private class SensorDataEventBuilder implements Runnable {
@@ -63,58 +61,63 @@ public class SOSInboundAdapter extends InboundAdapterBase {
 
 		private void buildGeoEvents() {
 			try {
-                                ObservationCollection collection = observationParser.readObservationCollection(sensorDataInputStream);
-				Observation observation=collection.getMember().getObservation();
-				String procedure=observation.getProcedure().getProcedure();
-				
-				FeatureMember feature=observation.getFeatureOfInterest().getFeatureCollection().getFeatureMember();
-				String featureId=feature.getSamplingPoint().getId();
-				String featureDescription=feature.getSamplingPoint().getDescription();
-				String featureName=feature.getSamplingPoint().getName();
-				String featurePos=feature.getSamplingPoint().getPosition().getPoint().getPos();
-				String featurePosCoords[]=featurePos.split(" ");
-				Double featurePosX=Double.parseDouble(featurePosCoords[1]);
-				Double featurePosY=Double.parseDouble(featurePosCoords[0]);
-				Point pt=new Point(featurePosX,featurePosY);
-				MapGeometry geom=new MapGeometry(pt, SpatialReference.create(31466));
-				
-				String valueString=observation.getResult().getDataArray().getValues();
-				String values []=valueString.split(";");
-				
-				AdapterDefinition def=(AdapterDefinition)definition;
-				GeoEventDefinition geoDef=def.getGeoEventDefinition("SOS-Definition");
-				DateFormat formatter=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-				for (int i=0;i<values.length;i++){
-					String singleValues[]=values[i].split(",");
-					String valueTime=singleValues[0];
-					String valueFeature=singleValues[1];
-					String value=singleValues[2];
-					
-					GeoEvent sensorEvent=geoEventCreator.create(geoDef.getGuid());
+				ObservationCollection collection = observationParser.readObservationCollection(sensorDataInputStream);
+				Observation observation = collection.getMember().getObservation();
+				String procedure = observation.getProcedure().getProcedure();
+
+				FeatureMember feature = observation.getFeatureOfInterest().getFeatureCollection().getFeatureMember();
+				String featureId = feature.getSamplingPoint().getId();
+				String featureDescription = feature.getSamplingPoint().getDescription();
+				String featureName = feature.getSamplingPoint().getName();
+				String featurePos = feature.getSamplingPoint().getPosition().getPoint().getPos();
+				String featurePosCoords[] = featurePos.split(" ");
+				Double featurePosX = Double.parseDouble(featurePosCoords[1]);
+				Double featurePosY = Double.parseDouble(featurePosCoords[0]);
+				Point pt = new Point(featurePosX, featurePosY);
+				MapGeometry geom = new MapGeometry(pt, SpatialReference.create(31466));
+
+				String valueString = observation.getResult().getDataArray().getValues();
+				String values[] = valueString.split(";");
+
+				AdapterDefinition def = (AdapterDefinition) definition;
+				GeoEventDefinition geoDef = def.getGeoEventDefinition("SOS-Definition");
+				DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+				for (int i = 0; i < values.length; i++) {
+					String singleValues[] = values[i].split(",");
+					String valueTime = singleValues[0];
+					String valueFeature = singleValues[1];
+					String value = singleValues[2];
+
+					GeoEvent sensorEvent = geoEventCreator.create(geoDef.getGuid());
 					sensorEvent.setField(0, procedure);
-					
+
 					FieldGroup featureGrp = sensorEvent.createFieldGroup("featureOfInterest");
 					featureGrp.setField(0, featureId);
 					featureGrp.setField(1, featureDescription);
 					featureGrp.setField(2, featureName);
 					featureGrp.setField(3, geom);
 					sensorEvent.setField(1, featureGrp);
-					
-					FieldGroup resultGrp=sensorEvent.createFieldGroup("result");
-					Date date=(Date)formatter.parse(valueTime);
-					resultGrp.setField(0,date);
+
+					FieldGroup resultGrp = sensorEvent.createFieldGroup("result");
+					Date date=null;
+					try {
+						date = (Date) formatter.parse(valueTime);
+					} catch (ParseException e) {
+						LOGGER.error(e.getMessage());
+					}
+					resultGrp.setField(0, date);
 					resultGrp.setField(1, valueFeature);
-					resultGrp.setField(2, value);
+					resultGrp.setField(2, Float.parseFloat(value));
 					sensorEvent.setField(2, resultGrp);
-					
+
 					geoEventListener.receive(sensorEvent);
-				}		
-				
-			} catch (JAXBException | MessagingException | FieldException | ParseException e) {
+				}
+
+			} catch (JAXBException | MessagingException | FieldException e) {
 				LOGGER.error(e.getMessage());
 			}
 		}
-}
+	}
 
 	@Override
 	public void receive(ByteBuffer buffer, String channelId) {
