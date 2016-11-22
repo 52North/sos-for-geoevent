@@ -26,8 +26,11 @@ import com.esri.ges.manager.geoeventdefinition.GeoEventDefinitionManagerExceptio
 import com.esri.ges.messaging.MessagingException;
 
 import net.opengis.gml.FeatureMember;
+import net.opengis.om.x10.FeatureOfInterest;
 import net.opengis.om.x10.Observation;
 import net.opengis.om.x10.ObservationCollection;
+import net.opengis.om.x10.Procedure;
+import net.opengis.om.x10.Result;
 
 public class SOSInboundAdapter extends InboundAdapterBase {
 	/**
@@ -63,28 +66,21 @@ public class SOSInboundAdapter extends InboundAdapterBase {
 
 		private void createGeoEvents() {
 			try {
-				//Parse the SOS response and get all necessary values to build the GeoEvents
+				// Parse the SOS response and get all necessary values to build
+				// the GeoEvents
 				ObservationCollection collection = observationParser.readObservationCollection(sensorDataInputStream);
 				Observation observation = collection.getMember().getObservation();
-				String procedure = observation.getProcedure().getProcedure();
 
-				FeatureMember feature = observation.getFeatureOfInterest().getFeatureCollection().getFeatureMember();
-				String featureId = feature.getSamplingPoint().getId();
-				String featureDescription = feature.getSamplingPoint().getDescription();
-				String featureName = feature.getSamplingPoint().getName();
-				String featurePos = feature.getSamplingPoint().getPosition().getPoint().getPos();
-				String featurePosCoords[] = featurePos.split(" ");
-				Double featurePosX = Double.parseDouble(featurePosCoords[1]);
-				Double featurePosY = Double.parseDouble(featurePosCoords[0]);
-				Point pt = new Point(featurePosX, featurePosY);
-				MapGeometry geom = new MapGeometry(pt, SpatialReference.create(31466));
+				Procedure procedure = observation.getProcedure();
+				FeatureOfInterest feature = observation.getFeatureOfInterest();
+				Result result = observation.getResult();
 
-				String valueString = observation.getResult().getDataArray().getValues();
+				String valueString = result.getDataArray().getValues();
 				String values[] = valueString.split(";");
 
 				AdapterDefinition def = (AdapterDefinition) definition;
 				GeoEventDefinition geoDef = def.getGeoEventDefinition("SOS-Definition");
-				
+
 				// Check if the GeoEvent definition exists. Otherwise add it to
 				// the GeoEventDefinitionManager
 				if (geoEventCreator.getGeoEventDefinitionManager().searchGeoEventDefinition(geoDef.getName(),
@@ -97,11 +93,10 @@ public class SOSInboundAdapter extends InboundAdapterBase {
 					}
 				}
 
-				//Create a GeoEvent for each record set from the O&M result
+				// Create a GeoEvent for each record set from the O&M result
 				for (int i = 0; i < values.length; i++) {
 					String valueSet = values[i];
-					GeoEvent sensorEvent = buildGeoEvent(procedure, featureId, featureDescription, featureName, geom,
-							valueSet, geoDef);
+					GeoEvent sensorEvent = buildGeoEvent(procedure, feature, result, valueSet, geoDef);
 
 					geoEventListener.receive(sensorEvent);
 				}
@@ -112,41 +107,28 @@ public class SOSInboundAdapter extends InboundAdapterBase {
 		}
 
 		/**
-		 * Builds a GeoEvent from the specified values
+		 * Builds a GeoEvent from the specified O&M values
 		 * 
 		 * @param procedure
-		 *            name of the procedure
-		 * @param featureId
-		 *            FeatureOfInterest ID
-		 * @param featureDescription
-		 *            FeatureOfInterest description
-		 * @param featureName
-		 *            FeatureOfInterest name
-		 * @param geom
-		 *            FeatureOfInterest geometry
+		 * @param feature
+		 * @param result
 		 * @param values
-		 *            value record set from the O&M result
 		 * @param geoDef
-		 *            GeoEvent Definition
-		 * @return GeoEvent with the specified attribute values
+		 * @return
 		 * @throws MessagingException
 		 * @throws FieldException
 		 */
-		public GeoEvent buildGeoEvent(String procedure, String featureId, String featureDescription, String featureName,
-				MapGeometry geom, String values, GeoEventDefinition geoDef) throws MessagingException, FieldException {
-			String singleValues[] = values.split(",");
-			String valueTime = singleValues[0];
-			String valueFeature = singleValues[1];
-			String value = singleValues[2];
+		public GeoEvent buildGeoEvent(Procedure procedure, FeatureOfInterest feature, Result result, String values,
+				GeoEventDefinition geoDef) throws MessagingException, FieldException {
+			String procedureValue = procedure.getProcedure();
 
 			GeoEvent sensorEvent = geoEventCreator.create(geoDef.getGuid());
-			sensorEvent.setField(0, procedure);
+			sensorEvent.setField(0, procedureValue);
 
-			FieldGroup featureGrp = createFeatureOfInterestFieldGroup(featureId, featureDescription, featureName, geom,
-					sensorEvent);
+			FieldGroup featureGrp = createFeatureOfInterestFieldGroup(feature, sensorEvent);
 			sensorEvent.setField(1, featureGrp);
 
-			FieldGroup resultGrp = createResultFieldGroup(valueTime, valueFeature, value, sensorEvent);
+			FieldGroup resultGrp = createResultFieldGroup(result, values, sensorEvent);
 			sensorEvent.setField(2, resultGrp);
 			return sensorEvent;
 		}
@@ -154,15 +136,24 @@ public class SOSInboundAdapter extends InboundAdapterBase {
 		/**
 		 * Creates a field group that represents the result record set
 		 * 
-		 * @param valueTime
-		 * @param valueFeature
-		 * @param value
+		 * @param result
+		 * @param values
 		 * @param sensorEvent
 		 * @return
 		 * @throws FieldException
 		 */
-		private FieldGroup createResultFieldGroup(String valueTime, String valueFeature, String value,
-				GeoEvent sensorEvent) throws FieldException {
+		private FieldGroup createResultFieldGroup(Result result, String values, GeoEvent sensorEvent)
+				throws FieldException {
+			String singleValues[] = values.split(",");
+			String valueTime = singleValues[0];
+			String valueFeature = singleValues[1];
+			String value = singleValues[2];
+
+			String propertyDefinition = result.getDataArray().getElementType().getDataRecord().getFieldList().get(2)
+					.getQuantity().getDefinition();
+			String propertyUom = result.getDataArray().getElementType().getDataRecord().getFieldList().get(2)
+					.getQuantity().getUom().getCode();
+
 			FieldGroup resultGrp = sensorEvent.createFieldGroup("result");
 			Date date = null;
 			try {
@@ -172,24 +163,38 @@ public class SOSInboundAdapter extends InboundAdapterBase {
 			}
 			resultGrp.setField(0, date);
 			resultGrp.setField(1, valueFeature);
-			resultGrp.setField(2, Float.parseFloat(value));
+			FieldGroup observedPropertyGrp = resultGrp.createFieldGroup("observedProperty");
+
+			observedPropertyGrp.setField(0, propertyDefinition);
+			observedPropertyGrp.setField(1, propertyUom);
+			observedPropertyGrp.setField(2, Float.parseFloat(value));
+			resultGrp.setField(2, observedPropertyGrp);
 			return resultGrp;
 		}
 
 		/**
-		 * Creates a field groupt that represents the FeatureOfInterest record
+		 * Creates a field group that represents the FeatureOfInterest record
 		 * set
 		 * 
-		 * @param featureId
-		 * @param featureDescription
-		 * @param featureName
-		 * @param geom
+		 * @param feature
 		 * @param sensorEvent
 		 * @return
 		 * @throws FieldException
 		 */
-		private FieldGroup createFeatureOfInterestFieldGroup(String featureId, String featureDescription,
-				String featureName, MapGeometry geom, GeoEvent sensorEvent) throws FieldException {
+		private FieldGroup createFeatureOfInterestFieldGroup(FeatureOfInterest feature, GeoEvent sensorEvent)
+				throws FieldException {
+
+			FeatureMember member = feature.getFeatureCollection().getFeatureMember();
+			String featureId = member.getSamplingPoint().getId();
+			String featureDescription = member.getSamplingPoint().getDescription();
+			String featureName = member.getSamplingPoint().getName();
+			String featurePos = member.getSamplingPoint().getPosition().getPoint().getPos();
+			String featurePosCoords[] = featurePos.split(" ");
+			Double featurePosX = Double.parseDouble(featurePosCoords[1]);
+			Double featurePosY = Double.parseDouble(featurePosCoords[0]);
+			Point pt = new Point(featurePosX, featurePosY);
+			MapGeometry geom = new MapGeometry(pt, SpatialReference.create(31466));
+
 			FieldGroup featureGrp = sensorEvent.createFieldGroup("featureOfInterest");
 			featureGrp.setField(0, featureId);
 			featureGrp.setField(1, featureDescription);

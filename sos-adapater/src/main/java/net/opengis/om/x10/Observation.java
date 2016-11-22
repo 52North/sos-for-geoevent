@@ -15,6 +15,9 @@ public class Observation {
 	
 	@XmlElement(name="procedure")
 	private Procedure procedure;
+	
+	@XmlElement(name="observedProperty")
+	private ObservedProperty observedProperty;
 
 	@XmlElement(name="result")
 	private Result result;
@@ -41,6 +44,14 @@ public class Observation {
 
 	public void setProcedure(Procedure procedure) {
 		this.procedure = procedure;
+	}
+
+	public ObservedProperty getObservedProperty() {
+		return observedProperty;
+	}
+
+	public void setObservedProperty(ObservedProperty observedProperty) {
+		this.observedProperty = observedProperty;
 	}
 
 	public Result getResult() {

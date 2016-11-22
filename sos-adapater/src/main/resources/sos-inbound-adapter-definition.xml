@@ -5,7 +5,7 @@
 	<description>${org.n52.sensorweb.sos-adapter.ADAPTER_IN_DESC}
 	</description>
 
-	<geoEventDefinitions> 
+	<geoEventDefinitions>
 		<geoEventDefinition name="SOS-Definition">
 			<fieldDefinitions>
 				<fieldDefinition name="procedure" type="String" />
@@ -29,11 +29,17 @@
 							</fieldDefinitionTag>
 						</fieldDefinition>
 						<fieldDefinition name="featureOfInterest" type="String" />
-						<fieldDefinition name="Wassertemperatur" type="Float" />
+						<fieldDefinition name="observedProperty" type="Group">
+							<fieldDefinitions>
+								<fieldDefinition name="definition" type="String" />
+								<fieldDefinition name="uom" type="String" />
+								<fieldDefinition name="value" type="Float" />
+							</fieldDefinitions>
+						</fieldDefinition>
 					</fieldDefinitions>
 				</fieldDefinition>
 			</fieldDefinitions>
 		</geoEventDefinition>
 	</geoEventDefinitions>
 
- </adapter>
+</adapter>
