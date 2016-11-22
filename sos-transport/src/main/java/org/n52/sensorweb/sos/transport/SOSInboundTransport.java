@@ -92,8 +92,8 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 		if (getProperty("requestInterval").isValid()) {
 			int value = (Integer) getProperty("requestInterval").getValue();
 			if (value > 0 && value != requestInterval) {
-				//requestInterval is in milliseconds
-				requestInterval = value*1000;
+				// requestInterval is in milliseconds
+				requestInterval = value * 1000;
 			}
 		}
 	}
@@ -179,7 +179,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 	}
 
 	/**
-	 * Creates an InputStream from a byte array
+	 * Creates an array of bytes from an InputStream
 	 * 
 	 * @param is
 	 *            InputStream
@@ -187,13 +187,17 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 	 */
 	private byte[] getByteArrayFromInputStream(InputStream is) {
 		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-		int nRead;
+		int nBytesRead;
 		int size = 1024;
 		byte[] data = new byte[size];
 
 		try {
-			while ((nRead = is.read(data, 0, data.length)) != -1) {
-				buffer.write(data, 0, nRead);
+			/*
+			 * Write data.length bytes repeatedly from the InputStream into a
+			 * ByteBuffer until the stream is at the end of file
+			 */
+			while ((nBytesRead = is.read(data, 0, data.length)) != -1) {
+				buffer.write(data, 0, nBytesRead);
 			}
 			buffer.flush();
 		} catch (IOException e) {
