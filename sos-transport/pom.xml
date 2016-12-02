@@ -14,7 +14,14 @@
 	<artifactId>sos-transport</artifactId>
 	<packaging>bundle</packaging>
 	<name>52north :: GeoEvent :: Transport :: SOS</name>
-	
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+		</dependency>
+	</dependencies>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -27,7 +34,10 @@
 						<Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
 						<Bundle-ContactAddress>${sdk.contact.address}</Bundle-ContactAddress>
 						<Bundle-Version>${project.version}</Bundle-Version>
-						<Export-Package />
+						<Export-Package>
+							net.opengis.gml,
+							net.opengis.om.x10,
+						</Export-Package>
 						<Embed-Dependency>
 							*;scope=compile|runtime;inline=true
 						</Embed-Dependency>
