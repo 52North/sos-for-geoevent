@@ -24,5 +24,9 @@
 			label="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_INTERVAL_LBL}"
 			description="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_INTERVAL_DESC}"
 			propertyType="Integer" defaultValue="" mandatory="true" readOnly="false" />
+		<propertyDefinition propertyName="eventTimeBegin"
+			label="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_TIME_BEGIN_LBL}"
+			description="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_TIME_BEGIN_DESC}"
+			propertyType="Integer" defaultValue="1" mandatory="true" readOnly="false" />
 	</propertyDefinitions>
 </transport>
