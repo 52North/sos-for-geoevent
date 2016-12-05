@@ -63,6 +63,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 	private DateTime eventTimeBegin;
 	private URI requestURI;
 	private HttpGet httpGet;
+	private boolean performInitialRequest;
 
 	private Thread thread = null;
 
@@ -128,6 +129,13 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 				nDaysInitialRequest = value;
 			}
 		}
+		performInitialRequest=false;//default
+		if (getProperty("performInitialRequest").isValid()) {
+			boolean value = (boolean) getProperty("performInitialRequest").getValue();
+			if (value != performInitialRequest) {
+				performInitialRequest = value;
+			}
+		}
 	}
 
 	@SuppressWarnings("incomplete-switch")
@@ -152,8 +160,9 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 		try {
 			applyProperties();
 			setRunningState(RunningState.STARTED);
-			if (eventTimeBegin == null) {
+			if (eventTimeBegin == null||performInitialRequest==true) {
 				eventTimeBegin = DateTime.now().minusDays(nDaysInitialRequest);
+				performInitialRequest=false;
 			}
 			requestURI = createHttpURI();
 			while (getRunningState() == RunningState.STARTED) {

@@ -28,5 +28,9 @@
 			label="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_TIME_BEGIN_LBL}"
 			description="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_TIME_BEGIN_DESC}"
 			propertyType="Integer" defaultValue="1" mandatory="true" readOnly="false" />
+		<propertyDefinition propertyName="performInitialRequest"
+			label="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_INITIAL_REQUEST_LBL}"
+			description="${org.n52.sensorweb.sos-transport.TRANSPORT_IN_INITIAL_REQUEST_DESC}"
+			propertyType="Boolean" defaultValue="false" mandatory="false" readOnly="false" />
 	</propertyDefinitions>
 </transport>
