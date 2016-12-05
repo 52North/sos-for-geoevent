@@ -37,6 +37,8 @@
 						<Export-Package>
 							net.opengis.gml,
 							net.opengis.om.x10,
+							net.opengis.sa.x10,
+							net.opengis.swe.x101
 						</Export-Package>
 						<Embed-Dependency>
 							*;scope=compile|runtime;inline=true
