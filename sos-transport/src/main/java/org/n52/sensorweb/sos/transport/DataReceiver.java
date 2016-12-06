@@ -1,23 +1,14 @@
 package org.n52.sensorweb.sos.transport;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.BufferOverflowException;
-import java.nio.ByteBuffer;
-
-import javax.xml.bind.JAXBException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-
-import com.esri.ges.core.component.RunningState;
-
-import net.opengis.om.x10.ObservationCollection;
 
 public class DataReceiver {
 

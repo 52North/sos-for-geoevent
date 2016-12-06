@@ -1,20 +1,12 @@
 package org.n52.sensorweb.sos.transport;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
-import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 
 import javax.xml.bind.JAXBException;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -152,10 +144,10 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 				performInitialRequest = false;
 			}
 			requestURI = requestBuilder.createHttpURI(url, procedure, offering, observedProperty);
-			LOGGER.info("Request URI: " + requestURI.toString());
 
 			while (getRunningState() == RunningState.STARTED) {
 				requestURI=requestBuilder.setURIEventTimeParameter(requestURI, eventTimeBegin);
+				LOGGER.info("Request URI: " + requestURI.toString());
 				httpGet = new HttpGet(requestURI);
 				byte[] data = dataReceiver.receiveData(httpGet);
 
