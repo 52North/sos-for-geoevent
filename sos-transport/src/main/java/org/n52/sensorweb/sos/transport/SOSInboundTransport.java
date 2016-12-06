@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 
@@ -14,7 +13,6 @@ import javax.xml.bind.JAXBException;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.joda.time.DateTime;
@@ -38,20 +36,10 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 	 * See {@link BundleLogger} for more info.
 	 */
 	private static final BundleLogger LOGGER = BundleLoggerFactory.getLogger(SOSInboundTransport.class);
-	private final String REQUEST_KEY = "request";
-	private final String SERVICE_KEY = "service";
-	private final String VERSION_KEY = "version";
-	private final String OFFERING_KEY = "offering";
-	private final String OBSERVED_PROPERTY_KEY = "observedProperty";
-	private final String PROCEDER_KEY = "procedure";
-	private final String RESPONSE_FORMAT_KEY = "responseFormat";
-	private final String EVENT_TIME_KEY = "eventTime";
 
-	private final String REQUEST_VALUE = "GetObservation";
-	private final String SERVICE_VALUE = "SOS";
-	private final String VERSION_VALUE = "1.0.0";
-	private final String RESPONSE_FORMAT_XML = "text/xml;subtype=\"om/1.0.0\"";
 	private final ObservationUnmarshaller observationParser;
+	private final DataReceiver dataReceiver;
+	private final RequestBuilder requestBuilder;
 	private final int EVENT_TIME_OFFSET = 1;
 
 	private String url;
@@ -69,13 +57,12 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 
 	public SOSInboundTransport(TransportDefinition definition) throws ComponentException {
 		super(definition);
+		this.requestBuilder = new RequestBuilder();
+		this.dataReceiver = new DataReceiver();
 		try {
-			LOGGER.info("Create observation parser");
 			observationParser = new ObservationUnmarshaller();
-			LOGGER.info("Observation Parser Created");
 		} catch (JAXBException e) {
 			LOGGER.warn(e.getMessage(), e);
-			LOGGER.warn("Ok Fehler");
 			throw new ComponentException(e.getMessage());
 		}
 		eventTimeBegin = null;
@@ -129,7 +116,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 				nDaysInitialRequest = value;
 			}
 		}
-		performInitialRequest=false;//default
+		performInitialRequest = false;// default
 		if (getProperty("performInitialRequest").isValid()) {
 			boolean value = (boolean) getProperty("performInitialRequest").getValue();
 			if (value != performInitialRequest) {
@@ -160,15 +147,29 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 		try {
 			applyProperties();
 			setRunningState(RunningState.STARTED);
-			if (eventTimeBegin == null||performInitialRequest==true) {
+			if (eventTimeBegin == null || performInitialRequest == true) {
 				eventTimeBegin = DateTime.now().minusDays(nDaysInitialRequest);
-				performInitialRequest=false;
+				performInitialRequest = false;
 			}
-			requestURI = createHttpURI();
+			requestURI = requestBuilder.createHttpURI(url, procedure, offering, observedProperty);
+			LOGGER.info("Request URI: " + requestURI.toString());
+
 			while (getRunningState() == RunningState.STARTED) {
-				setURIEventTimeParameter();
+				requestURI=requestBuilder.setURIEventTimeParameter(requestURI, eventTimeBegin);
 				httpGet = new HttpGet(requestURI);
-				receiveData();
+				byte[] data = dataReceiver.receiveData(httpGet);
+
+				ObservationCollection collection = observationParser
+						.readObservationCollection(new ByteArrayInputStream(data));
+				if (collection.getMember().getObservation() != null) {
+					eventTimeBegin = getLatestSamplingTime(collection).plusSeconds(EVENT_TIME_OFFSET);
+					ByteBuffer bb = ByteBuffer.allocate(data.length);
+					bb.put(data);
+					bb.flip();
+					LOGGER.info("SEND BYTE DATA");
+					byteListener.receive(bb, "");
+					bb.clear();
+				}
 				Thread.sleep(requestInterval);
 			}
 
@@ -181,144 +182,6 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 	public synchronized void stop() {
 		setRunningState(RunningState.STOPPING);
 		setRunningState(RunningState.STOPPED);
-	}
-
-	/**
-	 * Receive the raw byte data from the GetObservation request
-	 * 
-	 * @param httpGet
-	 *            HTTP-GET request for the GetObservation request
-	 */
-	private void receiveData() {
-		CloseableHttpResponse response = null;
-		ByteBuffer bb = null;
-		CloseableHttpClient httpclient = HttpClients.createDefault();
-
-		try {
-			response = httpclient.execute(httpGet);
-			HttpEntity entity = response.getEntity();
-			InputStream inStream = entity.getContent();
-
-			byte[] data = getByteArrayFromInputStream(inStream);
-
-			ObservationCollection collection = getObservationCollection(new ByteArrayInputStream(data));
-			if (hasEventValues(collection)) {
-				eventTimeBegin = getLatestSamplingTime(collection).plusSeconds(EVENT_TIME_OFFSET);
-				bb = ByteBuffer.allocate(data.length);
-				bb.put(data);
-				bb.flip();
-				LOGGER.info("SEND BYTE DATA");
-				byteListener.receive(bb, "");
-				bb.clear();
-			}
-
-		} catch (IOException e) {
-			LOGGER.error(e.getMessage());
-			setRunningState(RunningState.ERROR);
-		} catch (BufferOverflowException boe) {
-			LOGGER.error("BUFFER_OVERFLOW_ERROR", boe);
-			bb.clear();
-			setRunningState(RunningState.ERROR);
-		} finally {
-			try {
-				httpclient.close();
-				response.close();
-			} catch (IOException e) {
-				LOGGER.error(e.getMessage());
-				setRunningState(RunningState.ERROR);
-			}
-		}
-	}
-
-	/**
-	 * Creates an array of bytes from an InputStream
-	 * 
-	 * @param is
-	 *            InputStream
-	 * @return byte array
-	 */
-	private byte[] getByteArrayFromInputStream(InputStream is) {
-		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-		int nBytesRead;
-		int size = 1024;
-		byte[] data = new byte[size];
-
-		try {
-			/*
-			 * Write data.length bytes repeatedly from the InputStream into a
-			 * ByteBuffer until the stream is at the end of file
-			 */
-			while ((nBytesRead = is.read(data, 0, data.length)) != -1) {
-				buffer.write(data, 0, nBytesRead);
-			}
-			buffer.flush();
-		} catch (IOException e) {
-			LOGGER.error(e.getMessage());
-			setRunningState(RunningState.ERROR);
-		}
-		return buffer.toByteArray();
-	}
-
-	/**
-	 * Creates a HTTP-GET request for the SOS GetObservation request from the
-	 * specified URL and parameter properties.
-	 * 
-	 * @return GetObservation request as HTTP-GET
-	 */
-	private URI createHttpURI() {
-		String urlPrefix = "http://";
-		URI uri;
-		URI fullUri = null;
-		try {
-			URIBuilder builder = new URIBuilder();
-
-			// Create a valid URI
-			if (url.startsWith(urlPrefix)) {
-				uri = new URI(url);
-			} else {
-				StringBuilder sb = new StringBuilder(url);
-				sb.insert(0, urlPrefix);
-				uri = new URI(sb.toString());
-			}
-			// Create the URI for the request with all parameters
-			fullUri = builder.setScheme("http").setHost(uri.getHost()).setPath(uri.getPath())
-					.setParameter(REQUEST_KEY, REQUEST_VALUE).setParameter(SERVICE_KEY, SERVICE_VALUE)
-					.setParameter(VERSION_KEY, VERSION_VALUE).setParameter(OFFERING_KEY, offering)
-					.setParameter(OBSERVED_PROPERTY_KEY, observedProperty).setParameter(PROCEDER_KEY, procedure)
-					.setParameter(EVENT_TIME_KEY, "").setParameter(RESPONSE_FORMAT_KEY, RESPONSE_FORMAT_XML).build();
-		} catch (URISyntaxException e) {
-			LOGGER.error(e.getMessage());
-			setRunningState(RunningState.ERROR);
-		}
-		return fullUri;
-	}
-
-	/**
-	 * Sets the the event time parameter for the GetObservation request
-	 */
-	private void setURIEventTimeParameter() {
-		URIBuilder builder = new URIBuilder(this.requestURI);
-		DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-		String formattedEventTimeBegin = formatter.print(eventTimeBegin);
-		String formmettedEventTimeEnd = formatter.print(DateTime.now());
-		String eventTimeValue = new StringBuilder(formattedEventTimeBegin).append("/").append(formmettedEventTimeEnd)
-				.toString();
-		LOGGER.info("TimeBegin: " + formattedEventTimeBegin + " TimeEnd: " + formmettedEventTimeEnd
-				+ " EventTimeValue: " + eventTimeValue);
-		try {
-			requestURI = builder.setParameter(EVENT_TIME_KEY, eventTimeValue).build();
-			LOGGER.info("Request URI: " + requestURI.toString());
-		} catch (URISyntaxException e) {
-			LOGGER.error(e.getMessage());
-			setRunningState(RunningState.ERROR);
-		}
-	}
-
-	private boolean hasEventValues(ObservationCollection collection) {
-		if (collection.getMember().getObservation() != null)
-			return true;
-		else
-			return false;
 	}
 
 	/**
@@ -336,14 +199,4 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 		return date;
 	}
 
-	private ObservationCollection getObservationCollection(InputStream inStream) {
-		ObservationCollection collection = null;
-		try {
-			collection = observationParser.readObservationCollection(inStream);
-		} catch (JAXBException e) {
-
-			LOGGER.error(e.getMessage());
-		}
-		return collection;
-	}
 }
