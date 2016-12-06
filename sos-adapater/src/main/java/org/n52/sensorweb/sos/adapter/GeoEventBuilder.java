@@ -22,6 +22,7 @@ import net.opengis.om.x10.Result;
 
 /**
  * Class for building GeoEvents from O&M response values
+ * 
  * @author <a href="mailto:s.drost@52north.org">Sebastian Drost</a>
  *
  */
@@ -35,7 +36,6 @@ public class GeoEventBuilder {
 	public GeoEventBuilder(GeoEventCreator creator, GeoEventDefinition definition) {
 		this.geoEventCreator = creator;
 		this.geoeventDefinition = definition;
-
 	}
 
 	/**
@@ -71,7 +71,7 @@ public class GeoEventBuilder {
 	 * @param result
 	 * @param values
 	 * @param sensorEvent
-	 * @return FieldGroup that represents an O&M  result record set
+	 * @return FieldGroup that represents an O&M result record set
 	 * @throws FieldException
 	 * @throws ParseException
 	 */

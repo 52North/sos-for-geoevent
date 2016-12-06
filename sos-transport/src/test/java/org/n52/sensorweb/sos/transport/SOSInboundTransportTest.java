@@ -26,13 +26,5 @@ public class SOSInboundTransportTest {
 		Assert.assertThat(coll.getMember().getObservation().getSamplingTime().getTimePeriod().getEndPosition(),
 				CoreMatchers.equalTo("2016-10-27T11:15:00.000Z"));
 		
-		DateTime eventTimeBegin=null;
-		DateTime timeNow = DateTime.now();
-		if (eventTimeBegin == null) {
-			eventTimeBegin = timeNow.minusDays(3);
-		}
-		DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-		DateTime time=formatter.parseDateTime("2016-10-11T02:00:00.000+02:00");
-		formatter.print(eventTimeBegin);
 	}
 }
