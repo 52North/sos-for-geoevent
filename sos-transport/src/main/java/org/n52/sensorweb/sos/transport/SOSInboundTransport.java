@@ -1,7 +1,9 @@
 package org.n52.sensorweb.sos.transport;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 
 import javax.xml.bind.JAXBException;
@@ -138,15 +140,17 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 	public void run() {
 		try {
 			applyProperties();
+
 			setRunningState(RunningState.STARTED);
 			if (eventTimeBegin == null || performInitialRequest == true) {
 				eventTimeBegin = DateTime.now().minusDays(nDaysInitialRequest);
 				performInitialRequest = false;
 			}
+
 			requestURI = requestBuilder.createHttpURI(url, procedure, offering, observedProperty);
 
 			while (getRunningState() == RunningState.STARTED) {
-				requestURI=requestBuilder.setURIEventTimeParameter(requestURI, eventTimeBegin);
+				requestURI = requestBuilder.setURIEventTimeParameter(requestURI, eventTimeBegin);
 				LOGGER.info("Request URI: " + requestURI.toString());
 				httpGet = new HttpGet(requestURI);
 				byte[] data = dataReceiver.receiveData(httpGet);
@@ -164,9 +168,16 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 				}
 				Thread.sleep(requestInterval);
 			}
-
-		} catch (Throwable ex) {
-			LOGGER.error(ex.getMessage(), ex);
+		}  catch (JAXBException e) {
+			LOGGER.warn(e.getMessage());
+			LOGGER.info(requestURI.toString());
+		} catch (InterruptedException e) {
+			LOGGER.error(e.getMessage());
+			LOGGER.info(requestURI.toString());
+			setRunningState(RunningState.ERROR);
+			thread.interrupt();
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage());
 			setRunningState(RunningState.ERROR);
 		}
 	}
