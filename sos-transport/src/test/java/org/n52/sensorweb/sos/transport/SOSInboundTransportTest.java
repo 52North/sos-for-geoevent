@@ -13,6 +13,11 @@ import org.junit.Test;
 
 import net.opengis.om.x10.ObservationCollection;
 
+/**
+ * 
+ * @author <a href="mailto:s.drost@52north.org">Sebastian Drost</a>
+ *
+ */
 public class SOSInboundTransportTest {
 
 	@Test

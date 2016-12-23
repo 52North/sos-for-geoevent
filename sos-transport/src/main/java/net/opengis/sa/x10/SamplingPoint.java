@@ -5,6 +5,10 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 
+/**
+ * @author <a href="mailto:s.drost@52north.org">Sebastian Drost</a>
+ *
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class SamplingPoint {
 

@@ -23,6 +23,13 @@ import com.esri.ges.transport.TransportDefinition;
 
 import net.opengis.om.x10.ObservationCollection;
 
+/**
+ * Transport class for requesting sensor data from the PegelOnline Sensor
+ * Observation Service and receiving the data.
+ * 
+ * @author <a href="mailto:s.drost@52north.org">Sebastian Drost</a>
+ *
+ */
 public class SOSInboundTransport extends InboundTransportBase implements Runnable {
 	/**
 	 * Initialize the i18n Bundle Logger
@@ -35,7 +42,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 	private final DataReceiver dataReceiver;
 	private final RequestBuilder requestBuilder;
 	private final int EVENT_TIME_OFFSET = 1;
-	private final String ERROR_MESSAGE="Exception occurs while requesting following URL:";
+	private final String ERROR_MESSAGE = "Exception occurs while requesting following URL:";
 
 	private String url;
 	private String offering;
@@ -50,6 +57,13 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 
 	private Thread thread = null;
 
+	/**
+	 * Creates a new instance of this class from a specified TransportDefinition
+	 * 
+	 * @param definition
+	 *            TransportDefinition
+	 * @throws ComponentException
+	 */
 	public SOSInboundTransport(TransportDefinition definition) throws ComponentException {
 		super(definition);
 		this.requestBuilder = new RequestBuilder();
@@ -63,6 +77,11 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 		eventTimeBegin = null;
 	}
 
+	/**
+	 * Obtains the user specified properties.
+	 * 
+	 * @throws Exception
+	 */
 	public void applyProperties() throws Exception {
 		url = "";
 		if (getProperty("url").isValid()) {
@@ -142,18 +161,17 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 		try {
 			applyProperties();
 			setRunningState(RunningState.STARTED);
-			
-			//Set the begin time for the following request to the DateTime 
-			//that was the specified n-days before the current DateTime
-			//if the initial request flag is true. Otherwise set the 
-			//begin time to the current DateTime.
+
+			// Set the begin time for the following request to the DateTime
+			// that was the specified n-days before the current DateTime
+			// if the initial request flag is true. Otherwise set the
+			// begin time to the current DateTime.
 			if (performInitialRequest == true) {
 				eventTimeBegin = DateTime.now().minusDays(nDaysInitialRequest);
 				performInitialRequest = false;
-			}
-			else{
-				if(eventTimeBegin==null){
-					eventTimeBegin=DateTime.now();
+			} else {
+				if (eventTimeBegin == null) {
+					eventTimeBegin = DateTime.now();
 				}
 			}
 
@@ -177,14 +195,17 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 				}
 				Thread.sleep(requestInterval);
 			}
-		}  catch (JAXBException e) {
-			LOGGER.warn(e.getMessage()+System.lineSeparator()+ERROR_MESSAGE+System.lineSeparator()+requestURI.toString());
+		} catch (JAXBException e) {
+			LOGGER.warn(e.getMessage() + System.lineSeparator() + ERROR_MESSAGE + System.lineSeparator()
+					+ requestURI.toString());
 		} catch (InterruptedException e) {
-			LOGGER.error(e.getMessage()+System.lineSeparator()+ERROR_MESSAGE+System.lineSeparator()+requestURI.toString());
+			LOGGER.error(e.getMessage() + System.lineSeparator() + ERROR_MESSAGE + System.lineSeparator()
+					+ requestURI.toString());
 			setRunningState(RunningState.ERROR);
 			thread.interrupt();
 		} catch (Exception e) {
-			LOGGER.error(e.getMessage()+System.lineSeparator()+ERROR_MESSAGE+System.lineSeparator()+requestURI.toString());
+			LOGGER.error(e.getMessage() + System.lineSeparator() + ERROR_MESSAGE + System.lineSeparator()
+					+ requestURI.toString());
 			setRunningState(RunningState.ERROR);
 		}
 	}
@@ -195,11 +216,11 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 	}
 
 	/**
-	 * Determines the latest sampling time from the response
+	 * Determines the latest sampling time from ObservationCollection.
 	 * 
-	 * @param inStream
-	 *            InputStream that has to be parsed
-	 * @return the latest sampling time
+	 * @param collection
+	 *            ObservationCollection
+	 * @return DateTime that represents the latest sampling time.
 	 */
 	private DateTime getLatestSamplingTime(ObservationCollection collection) {
 		String latestSamplingTime = collection.getMember().getObservation().getSamplingTime().getTimePeriod()

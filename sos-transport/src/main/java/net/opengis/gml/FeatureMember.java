@@ -7,16 +7,22 @@ import javax.xml.bind.annotation.XmlElement;
 
 import net.opengis.sa.x10.SamplingPoint;
 
-
+/**
+ * 
+ * @author <a href="mailto:s.drost@52north.org">Sebastian Drost</a>
+ *
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class FeatureMember {
 	
 	@XmlElement(name="SamplingPoint",namespace="http://www.opengis.net/sampling/1.0")
 	private SamplingPoint samplingPoint;
 	
+
 	public SamplingPoint getSamplingPoint(){
 		return samplingPoint;
 	}
+
 
 	public void setSamplingPoint(SamplingPoint samplingPoint) {
 		this.samplingPoint = samplingPoint;

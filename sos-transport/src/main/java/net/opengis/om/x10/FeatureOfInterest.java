@@ -6,6 +6,10 @@ import javax.xml.bind.annotation.XmlElement;
 
 import net.opengis.gml.FeatureCollection;
 
+/**
+ * @author <a href="mailto:s.drost@52north.org">Sebastian Drost</a>
+ *
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class FeatureOfInterest {
 	

@@ -8,7 +8,12 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-
+/**
+ * This class is used for building a GetObservation request as HTTP-GET
+ * 
+ * @author <a href="mailto:s.drost@52north.org">Sebastian Drost</a>
+ *
+ */
 public class RequestBuilder {
 
 	private final String REQUEST_KEY = "request";
@@ -30,6 +35,21 @@ public class RequestBuilder {
 	 * specified URL and parameter properties.
 	 * 
 	 * @return GetObservation request as HTTP-GET
+	 */
+	/**
+	 * Creates a URI for the GetObservation HTTP-GET request from the specified
+	 * parameters.
+	 * 
+	 * @param url
+	 *            base URL
+	 * @param procedure
+	 *            parameter that specifies the procedure
+	 * @param offering
+	 *            parameter that specifies the offering
+	 * @param observedProperty
+	 *            parameter that specifies the observed property
+	 * @return GetObservation HTTP-GET URI
+	 * @throws URISyntaxException
 	 */
 	public URI createHttpURI(String url, String procedure, String offering, String observedProperty)
 			throws URISyntaxException {
@@ -57,7 +77,15 @@ public class RequestBuilder {
 	}
 
 	/**
-	 * Sets the the event time parameter for the GetObservation request
+	 * Sets the the event time parameter in the URI for the GetObservation
+	 * HTTP-GET request
+	 * 
+	 * @param requestUri
+	 *            URI for which the event time parameter has to be set
+	 * @param eventTimeBegin
+	 *            parameter for the event time beginning
+	 * @return GetObservation HTTP-GET URI with set event time
+	 * @throws URISyntaxException
 	 */
 	public URI setURIEventTimeParameter(URI requestUri, DateTime eventTimeBegin) throws URISyntaxException {
 		URIBuilder builder = new URIBuilder(requestUri);

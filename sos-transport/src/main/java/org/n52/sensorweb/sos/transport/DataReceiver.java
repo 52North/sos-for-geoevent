@@ -10,6 +10,10 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
+/**
+ * @author <a href="mailto:s.drost@52north.org">Sebastian Drost</a>
+ *
+ */
 public class DataReceiver {
 
 	/**
@@ -17,6 +21,9 @@ public class DataReceiver {
 	 * 
 	 * @param httpGet
 	 *            HTTP-GET request for the GetObservation request
+	 * @return array of bytes representing the response from the GetObersvation
+	 *         request
+	 * @throws IOException
 	 */
 	public byte[] receiveData(HttpGet httpGet) throws IOException {
 		CloseableHttpResponse response = null;
@@ -40,6 +47,12 @@ public class DataReceiver {
 	 * @param is
 	 *            InputStream
 	 * @return byte array
+	 */
+	/**
+	 * 
+	 * @param is Creates an array of bytes from an InputStream
+	 * @return Byte array
+	 * @throws IOException
 	 */
 	private byte[] getByteArrayFromInputStream(InputStream is) throws IOException {
 		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
