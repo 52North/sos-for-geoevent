@@ -35,6 +35,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 	private final DataReceiver dataReceiver;
 	private final RequestBuilder requestBuilder;
 	private final int EVENT_TIME_OFFSET = 1;
+	private final String ERROR_MESSAGE="Exception occurs while requesting following URL:";
 
 	private String url;
 	private String offering;
@@ -140,11 +141,20 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 	public void run() {
 		try {
 			applyProperties();
-
 			setRunningState(RunningState.STARTED);
-			if (eventTimeBegin == null || performInitialRequest == true) {
+			
+			//Set the begin time for the following request to the DateTime 
+			//that was the specified n-days before the current DateTime
+			//if the initial request flag is true. Otherwise set the 
+			//begin time to the current DateTime.
+			if (performInitialRequest == true) {
 				eventTimeBegin = DateTime.now().minusDays(nDaysInitialRequest);
 				performInitialRequest = false;
+			}
+			else{
+				if(eventTimeBegin==null){
+					eventTimeBegin=DateTime.now();
+				}
 			}
 
 			requestURI = requestBuilder.createHttpURI(url, procedure, offering, observedProperty);
@@ -162,22 +172,19 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 					ByteBuffer bb = ByteBuffer.allocate(data.length);
 					bb.put(data);
 					bb.flip();
-					LOGGER.info("SEND BYTE DATA");
 					byteListener.receive(bb, "");
 					bb.clear();
 				}
 				Thread.sleep(requestInterval);
 			}
 		}  catch (JAXBException e) {
-			LOGGER.warn(e.getMessage());
-			LOGGER.info(requestURI.toString());
+			LOGGER.warn(e.getMessage()+System.lineSeparator()+ERROR_MESSAGE+System.lineSeparator()+requestURI.toString());
 		} catch (InterruptedException e) {
-			LOGGER.error(e.getMessage());
-			LOGGER.info(requestURI.toString());
+			LOGGER.error(e.getMessage()+System.lineSeparator()+ERROR_MESSAGE+System.lineSeparator()+requestURI.toString());
 			setRunningState(RunningState.ERROR);
 			thread.interrupt();
 		} catch (Exception e) {
-			LOGGER.error(e.getMessage());
+			LOGGER.error(e.getMessage()+System.lineSeparator()+ERROR_MESSAGE+System.lineSeparator()+requestURI.toString());
 			setRunningState(RunningState.ERROR);
 		}
 	}
