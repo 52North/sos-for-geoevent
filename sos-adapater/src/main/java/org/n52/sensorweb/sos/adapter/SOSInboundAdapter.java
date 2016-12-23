@@ -5,7 +5,6 @@ import java.nio.ByteBuffer;
 import java.text.ParseException;
 import javax.xml.bind.JAXBException;
 
-
 import com.esri.ges.adapter.AdapterDefinition;
 import com.esri.ges.adapter.InboundAdapterBase;
 import com.esri.ges.core.component.ComponentException;
@@ -24,6 +23,8 @@ import net.opengis.om.x10.Procedure;
 import net.opengis.om.x10.Result;
 
 /**
+ * InboundAdapter class for receiving the byte data from the SOSInboundTransport
+ * that contains the GetObservation response data.S
  * 
  * @author <a href="mailto:s.drost@52north.org">Sebastian Drost</a>
  *
@@ -38,6 +39,14 @@ public class SOSInboundAdapter extends InboundAdapterBase {
 
 	private final ObservationUnmarshaller observationParser;
 
+	/**
+	 * Creates a new instance of the SOSInboundAdapter from an
+	 * AdapterDefinition.
+	 * 
+	 * @param definition
+	 *            AdapterDefinition
+	 * @throws ComponentException
+	 */
 	public SOSInboundAdapter(AdapterDefinition definition) throws ComponentException {
 		super(definition);
 		try {
@@ -48,6 +57,13 @@ public class SOSInboundAdapter extends InboundAdapterBase {
 		}
 	}
 
+	/**
+	 * This class provides functionality for building GeoEvents asynchronously
+	 * from byte data received from the SOSInboundTransport.
+	 * 
+	 * @author <a href="mailto:s.drost@52north.org">Sebastian Drost</a>
+	 *
+	 */
 	private class SensorDataEventBuilder implements Runnable {
 		private GeoEventBuilder builder;
 		private ObservationCollection collection;
@@ -83,6 +99,10 @@ public class SOSInboundAdapter extends InboundAdapterBase {
 		}
 	}
 
+	/**
+	 * This method will be invoked when receiving byte data from an
+	 * InboundTransport. It creates GeoEvents from the received byte data.
+	 */
 	@Override
 	public void receive(ByteBuffer buffer, String channelId) {
 		if (!buffer.hasRemaining()) {

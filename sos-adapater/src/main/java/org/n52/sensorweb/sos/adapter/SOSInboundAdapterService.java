@@ -6,7 +6,8 @@ import com.esri.ges.adapter.util.XmlAdapterDefinition;
 import com.esri.ges.core.component.ComponentException;
 
 /**
- * Class for building GeoEvents from O&M response values
+ * This class creates a new SOSInboundAdapter from a XmlAdapterDefinition.
+ * 
  * @author <a href="mailto:s.drost@52north.org">Sebastian Drost</a>
  *
  */

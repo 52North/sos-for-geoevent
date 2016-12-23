@@ -6,6 +6,10 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * @author <a href="mailto:s.drost@52north.org">Sebastian Drost</a>
+ *
+ */
 @XmlRootElement(name="ObservationCollection")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ObservationCollection {

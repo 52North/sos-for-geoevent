@@ -42,9 +42,13 @@ public class GeoEventBuilder {
 	 * Builds a GeoEvent from the specified O&M values
 	 * 
 	 * @param procedure
+	 *            O&M procedure
 	 * @param feature
+	 *            O&M feature
 	 * @param result
+	 *            O&M result
 	 * @param values
+	 *            O&M values
 	 * @return GeoEvent built from the O&M values
 	 * @throws MessagingException
 	 * @throws FieldException
@@ -66,11 +70,14 @@ public class GeoEventBuilder {
 	}
 
 	/**
-	 * Creates a field group that represents an O&M result record set
+	 * Creates a field group that represents an O&M result record set.
 	 * 
 	 * @param result
+	 *            O&M result
 	 * @param values
+	 *            O&M values
 	 * @param sensorEvent
+	 *            GeoEvent that represents the sensor event.
 	 * @return FieldGroup that represents an O&M result record set
 	 * @throws FieldException
 	 * @throws ParseException
@@ -107,7 +114,9 @@ public class GeoEventBuilder {
 	 * Creates a field group that represents the FeatureOfInterest record set
 	 * 
 	 * @param feature
+	 *            O&M feature
 	 * @param sensorEvent
+	 *            GeoEvent that represents the sensor event.
 	 * @return FieldGroup that represents the FeatureOfInterest record set
 	 * @throws FieldException
 	 */

@@ -8,6 +8,10 @@ import javax.xml.bind.annotation.XmlElement;
 import net.opengis.sa.x10.SamplingPoint;
 
 
+/**
+ * @author <a href="mailto:s.drost@52north.org">Sebastian Drost</a>
+ *
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class FeatureMember {
 	
