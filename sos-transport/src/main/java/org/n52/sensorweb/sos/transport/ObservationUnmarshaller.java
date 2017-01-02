@@ -8,7 +8,7 @@ import javax.xml.bind.Unmarshaller;
 import net.opengis.om.x10.ObservationCollection;
 
 /**
- * Class for deserializing XML data from a SOS GetObservation response
+ * Class for deserializing XML data from a SOS GetObservation response.
  * 
  * @author <a href="mailto:m.rieke@52north.org">Matthes Rieke</a>
  */
@@ -24,7 +24,7 @@ public class ObservationUnmarshaller {
 
 	/**
 	 * Deserializes an InputStream that contains XML data from a SOS
-	 * GetObservation response
+	 * GetObservation response.
 	 * 
 	 * @param sensorDataInputStream contains the XML data
 	 * @return ObservationCollection that contains data from a SOS

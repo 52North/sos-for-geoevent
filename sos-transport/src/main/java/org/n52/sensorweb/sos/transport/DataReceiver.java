@@ -57,6 +57,7 @@ public class DataReceiver {
 	private byte[] getByteArrayFromInputStream(InputStream is) throws IOException {
 		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 		int nBytesRead;
+		//Arbitrary size for the data array. The smaller it's size, the 
 		int size = 1024;
 		byte[] data = new byte[size];
 

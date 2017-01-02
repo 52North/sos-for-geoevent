@@ -1,9 +1,7 @@
 package org.n52.sensorweb.sos.transport;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 
 import javax.xml.bind.JAXBException;
@@ -91,6 +89,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 			}
 		}
 
+		// identifier for the O&M offering
 		offering = "";
 		if (getProperty("offering").isValid()) {
 			String value = (String) getProperty("offering").getValue();
@@ -99,6 +98,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 			}
 		}
 
+		// identifier for the O&M observedProperty
 		observedProperty = "";
 		if (getProperty("observedProperty").isValid()) {
 			String value = (String) getProperty("observedProperty").getValue();
@@ -107,6 +107,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 			}
 		}
 
+		// identifier for the O&M procedure
 		procedure = "";
 		if (getProperty("procedure").isValid()) {
 			String value = (String) getProperty("procedure").getValue();
@@ -114,6 +115,8 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 				procedure = value;
 			}
 		}
+
+		// interval for the getObservation request
 		requestInterval = 10000; // default
 		if (getProperty("requestInterval").isValid()) {
 			int value = (Integer) getProperty("requestInterval").getValue();
@@ -123,6 +126,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 			}
 		}
 
+		// number of days before the current date for the initial request
 		nDaysInitialRequest = 3; // default
 		if (getProperty("eventTimeBegin").isValid()) {
 			int value = (Integer) getProperty("eventTimeBegin").getValue();
@@ -130,6 +134,8 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 				nDaysInitialRequest = value;
 			}
 		}
+
+		// flag for whether performing the initial request or not
 		performInitialRequest = false;// default
 		if (getProperty("performInitialRequest").isValid()) {
 			boolean value = (boolean) getProperty("performInitialRequest").getValue();
@@ -179,12 +185,15 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 
 			while (getRunningState() == RunningState.STARTED) {
 				requestURI = requestBuilder.setURIEventTimeParameter(requestURI, eventTimeBegin);
-				LOGGER.info("Request URI: " + requestURI.toString());
 				httpGet = new HttpGet(requestURI);
 				byte[] data = dataReceiver.receiveData(httpGet);
 
 				ObservationCollection collection = observationParser
 						.readObservationCollection(new ByteArrayInputStream(data));
+
+				// if there are any new Observations since the last request,
+				// determine the latest sampling time to use it as begin
+				// time for the next request
 				if (collection.getMember().getObservation() != null) {
 					eventTimeBegin = getLatestSamplingTime(collection).plusSeconds(EVENT_TIME_OFFSET);
 					ByteBuffer bb = ByteBuffer.allocate(data.length);

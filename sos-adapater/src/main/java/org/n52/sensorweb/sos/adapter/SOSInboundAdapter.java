@@ -92,7 +92,6 @@ public class SOSInboundAdapter extends InboundAdapterBase {
 					sensorEvent = this.builder.buildGeoEvent(procedure, feature, result, valueSet);
 					geoEventListener.receive(sensorEvent);
 				} catch (MessagingException | FieldException | ParseException e) {
-					// TODO Auto-generated catch block
 					LOGGER.error(e.getMessage());
 				}
 			}
