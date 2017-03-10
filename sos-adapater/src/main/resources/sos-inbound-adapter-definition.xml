@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<adapter name="SOS-Inbound"
+<adapter name="SOSInboundAdapter-IOOS"
 	label="${org.n52.sensorweb.sos-adapter.ADAPTER_IN_LABEL}" domain="org.n52.sensorweb.sos.adapter.inbound"
 	contact="yourname@yourcompany.com" version="10.4.1" type="inbound">
 	<description>${org.n52.sensorweb.sos-adapter.ADAPTER_IN_DESC}
