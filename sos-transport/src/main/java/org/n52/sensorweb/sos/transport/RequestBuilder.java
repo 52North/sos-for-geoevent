@@ -28,7 +28,7 @@ public class RequestBuilder {
 	private final String REQUEST_VALUE = "GetObservation";
 	private final String SERVICE_VALUE = "SOS";
 	private final String VERSION_VALUE = "1.0.0";
-	private final String RESPONSE_FORMAT_XML = "text/xml;subtype=\"om/1.0.0\"";
+	private final String RESPONSE_FORMAT_XML ="text/xml;subtype=\"om/1.0.0/profiles/ioos_sos/1.0\"";
 
 	/**
 	 * Creates a HTTP-GET request for the SOS GetObservation request from the
