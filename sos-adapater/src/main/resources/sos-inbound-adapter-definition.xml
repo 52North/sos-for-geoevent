@@ -6,7 +6,7 @@
 	</description>
 
 	<geoEventDefinitions>
-		<geoEventDefinition name="SOS-Definition">
+		<geoEventDefinition name="SOS-IOOS-Definition">
 			<fieldDefinitions>
 				<fieldDefinition name="procedure" type="String" />
 				<fieldDefinition name="featureOfInterest" type="Group">
