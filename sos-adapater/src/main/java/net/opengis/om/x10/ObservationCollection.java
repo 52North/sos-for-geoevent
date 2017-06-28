@@ -21,7 +21,6 @@ public class ObservationCollection {
 	private String id;
 	
 	
-	
 	public Member getMember() {
 		return member;
 	}
@@ -37,8 +36,5 @@ public class ObservationCollection {
 	public void setId(String id) {
 		this.id = id;
 	}
-
-
-	
 
 }

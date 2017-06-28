@@ -13,15 +13,16 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class FeatureCollection {
 
-	@XmlElement(name="featureMember")
-	private FeatureMember featureMember;
+	@XmlElement(name="location")
+	private Location location;
+
+	public Location getLocation() {
+		return location;
+	}
+
+	public void setLocation(Location location) {
+		this.location = location;
+	}
 		
-	public FeatureMember getFeatureMember(){
-		return featureMember;
-	}
-	
-	public void setFeatureMember(FeatureMember featureMember) {
-		this.featureMember = featureMember;
-	}
 
 }

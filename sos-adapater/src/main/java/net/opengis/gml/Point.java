@@ -21,5 +21,16 @@ public class Point {
 	public void setPos(String pos) {
 		this.pos = pos;
 	}
+	
+	@XmlElement(name="name", namespace="http://www.opengis.net/gml")
+	private String name;
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
 
 }

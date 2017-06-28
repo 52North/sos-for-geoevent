@@ -1,21 +1,15 @@
-package net.opengis.om.x10;
+package net.opengis.swe.x20;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlType;
 
-import net.opengis.swe.x101.DataArray;
-import net.opengis.swe.x20.DataRecord;
-
-
-/**
- * @author <a href="mailto:s.drost@52north.org">Sebastian Drost</a>
- *
- */
+@XmlType(namespace="http://www.opengis.net/swe/2.0")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Result {
-
-	@XmlElement(name="DataRecord", namespace="http://www.opengis.net/swe/2.0")
+public class ElementType {
+	
+	@XmlElement(name="DataRecord")
 	private DataRecord dataRecord;
 
 	public DataRecord getDataRecord() {
@@ -25,4 +19,5 @@ public class Result {
 	public void setDataRecord(DataRecord dataRecord) {
 		this.dataRecord = dataRecord;
 	}
+
 }

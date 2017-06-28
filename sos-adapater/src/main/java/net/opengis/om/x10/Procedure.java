@@ -3,6 +3,7 @@ package net.opengis.om.x10;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 
 /**
  * @author <a href="mailto:s.drost@52north.org">Sebastian Drost</a>
@@ -20,6 +21,17 @@ public class Procedure {
 
 	public void setProcedure(String procedure) {
 		this.procedure = procedure;
+	}
+	
+	@XmlElement(name="Process")
+	private Process process;
+
+	public Process getProcess() {
+		return process;
+	}
+
+	public void setProcess(Process process) {
+		this.process = process;
 	}
 
 }
