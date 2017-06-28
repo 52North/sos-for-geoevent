@@ -76,13 +76,12 @@ public class SOSInboundAdapter extends InboundAdapterBase {
 		@Override
 		public void run() {
 			Observation observation = collection.getMember().getObservation();
-
 			Procedure procedure = observation.getProcedure();
 			FeatureOfInterest feature = observation.getFeatureOfInterest();
 			Result result = observation.getResult();
-
-			String valueString = result.getDataArray().getValues();
-			String values[] = valueString.split(";");
+			ObservationReader observationReader=new ObservationReader();
+			
+			String values[] = observationReader.getResultValues(result);
 
 			// Create a GeoEvent for each record set from the O&M result
 			for (int i = 0; i < values.length; i++) {
@@ -118,7 +117,7 @@ public class SOSInboundAdapter extends InboundAdapterBase {
 			collection = observationParser.readObservationCollection(in);
 
 			AdapterDefinition def = (AdapterDefinition) definition;
-			GeoEventDefinition geoDef = def.getGeoEventDefinition("SOS-Definition");
+			GeoEventDefinition geoDef = def.getGeoEventDefinition("SOS-IOOS-Definition");
 
 			// Check if the GeoEvent definition exists. Otherwise add it to
 			// the GeoEventDefinitionManager

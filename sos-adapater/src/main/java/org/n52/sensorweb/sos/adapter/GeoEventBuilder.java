@@ -15,10 +15,10 @@ import com.esri.ges.core.geoevent.GeoEventDefinition;
 import com.esri.ges.messaging.GeoEventCreator;
 import com.esri.ges.messaging.MessagingException;
 
-import net.opengis.gml.FeatureMember;
 import net.opengis.om.x10.FeatureOfInterest;
 import net.opengis.om.x10.Procedure;
 import net.opengis.om.x10.Result;
+import net.opengis.swe.x20.Field;
 
 /**
  * Class for building GeoEvents from O&M response values
@@ -32,10 +32,12 @@ public class GeoEventBuilder {
 
 	private GeoEventCreator geoEventCreator;
 	private GeoEventDefinition geoeventDefinition;
+	private ObservationReader observationReader;
 
 	public GeoEventBuilder(GeoEventCreator creator, GeoEventDefinition definition) {
 		this.geoEventCreator = creator;
 		this.geoeventDefinition = definition;
+		this.observationReader=new ObservationReader();
 	}
 
 	/**
@@ -56,7 +58,7 @@ public class GeoEventBuilder {
 	 */
 	public GeoEvent buildGeoEvent(Procedure procedure, FeatureOfInterest feature, Result result, String values)
 			throws MessagingException, FieldException, ParseException {
-		String procedureValue = procedure.getProcedure();
+		String procedureValue = observationReader.getProcedure(procedure);
 
 		GeoEvent sensorEvent = geoEventCreator.create(geoeventDefinition.getGuid());
 		sensorEvent.setField(0, procedureValue);
@@ -89,10 +91,8 @@ public class GeoEventBuilder {
 		String valueFeature = singleValues[1];
 		String value = singleValues[2];
 
-		String propertyDefinition = result.getDataArray().getElementType().getDataRecord().getFieldList().get(2)
-				.getQuantity().getDefinition();
-		String propertyUom = result.getDataArray().getElementType().getDataRecord().getFieldList().get(2).getQuantity()
-				.getUom().getCode();
+		String propertyDefinition = observationReader.getPropertyDefinition(result);
+		String propertyUom = observationReader.getPropertyUom(result);
 
 		FieldGroup resultGrp = sensorEvent.createFieldGroup("result");
 		Date date = null;
@@ -123,16 +123,13 @@ public class GeoEventBuilder {
 	private FieldGroup createFeatureOfInterestFieldGroup(FeatureOfInterest feature, GeoEvent sensorEvent)
 			throws FieldException {
 
-		FeatureMember member = feature.getFeatureCollection().getFeatureMember();
-		String featureId = member.getSamplingPoint().getId();
-		String featureDescription = member.getSamplingPoint().getDescription();
-		String featureName = member.getSamplingPoint().getName();
-		String featurePos = member.getSamplingPoint().getPosition().getPoint().getPos();
-		String featurePosCoords[] = featurePos.split(" ");
-		Double featurePosX = Double.parseDouble(featurePosCoords[1]);
-		Double featurePosY = Double.parseDouble(featurePosCoords[0]);
+		String featureId = observationReader.getFeatureId(feature);
+		String featureDescription = observationReader.getFeatureDescription(feature);
+		String featureName = observationReader.getFeatureName(feature);
+		Double featurePosX = observationReader.getFeaturePosX(feature);
+		Double featurePosY = observationReader.getFeaturePosY(feature);
 		Point pt = new Point(featurePosX, featurePosY);
-		MapGeometry geom = new MapGeometry(pt, SpatialReference.create(31466));
+		MapGeometry geom = new MapGeometry(pt, SpatialReference.create(4326));
 
 		FieldGroup featureGrp = sensorEvent.createFieldGroup("featureOfInterest");
 		featureGrp.setField(0, featureId);

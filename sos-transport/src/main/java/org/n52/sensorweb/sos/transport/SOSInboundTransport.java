@@ -22,7 +22,7 @@ import com.esri.ges.transport.TransportDefinition;
 import net.opengis.om.x10.ObservationCollection;
 
 /**
- * Transport class for requesting sensor data from the PegelOnline Sensor
+ * Transport class for requesting sensor data from a Sensor
  * Observation Service and receiving the data.
  * 
  * @author <a href="mailto:s.drost@52north.org">Sebastian Drost</a>
@@ -39,6 +39,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 	private final ObservationUnmarshaller observationParser;
 	private final DataReceiver dataReceiver;
 	private final RequestBuilder requestBuilder;
+	private ObservationReader observationReader;
 	private final int EVENT_TIME_OFFSET = 1;
 	private final String ERROR_MESSAGE = "Exception occurs while requesting following URL:";
 
@@ -66,6 +67,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 		super(definition);
 		this.requestBuilder = new RequestBuilder();
 		this.dataReceiver = new DataReceiver();
+		this.observationReader=new ObservationReader();
 		try {
 			observationParser = new ObservationUnmarshaller();
 		} catch (JAXBException e) {
@@ -232,8 +234,7 @@ public class SOSInboundTransport extends InboundTransportBase implements Runnabl
 	 * @return DateTime that represents the latest sampling time.
 	 */
 	private DateTime getLatestSamplingTime(ObservationCollection collection) {
-		String latestSamplingTime = collection.getMember().getObservation().getSamplingTime().getTimePeriod()
-				.getEndPosition();
+		String latestSamplingTime = observationReader.getLatestSamplingTime(collection);
 		DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 		DateTime date = formatter.parseDateTime(latestSamplingTime);
 		return date;
