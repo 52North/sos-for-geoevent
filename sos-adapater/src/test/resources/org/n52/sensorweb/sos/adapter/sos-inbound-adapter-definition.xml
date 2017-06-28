@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<adapter name="SOS-Inbound"
+	label="${org.n52.sensorweb.sos-adapter.ADAPTER_IN_LABEL}" domain="org.n52.sensorweb.sos.adapter.inbound"
+	contact="yourname@yourcompany.com" version="10.4.1" type="inbound">
+	<description>${org.n52.sensorweb.sos-adapter.ADAPTER_IN_DESC}
+	</description>
+
+	<geoEventDefinitions>
+		<geoEventDefinition name="SOS-Definition">
+			<fieldDefinitions>
+				<fieldDefinition name="procedure" type="String" />
+				<fieldDefinition name="featureOfInterest" type="Group">
+					<fieldDefinitions>
+						<fieldDefinition name="id" type="String" />
+						<fieldDefinition name="description" type="String" />
+						<fieldDefinition name="name" type="String" />
+						<fieldDefinition name="position" type="Geometry">
+							<fieldDefinitionTag>
+								<name>GEOMETRY</name>
+							</fieldDefinitionTag>
+						</fieldDefinition>
+					</fieldDefinitions>
+				</fieldDefinition>
+				<fieldDefinition name="result" type="Group">
+					<fieldDefinitions>
+						<fieldDefinition name="samplingTime" type="Date">
+							<fieldDefinitionTag>
+								<name>TIME_START</name>
+							</fieldDefinitionTag>
+						</fieldDefinition>
+						<fieldDefinition name="featureOfInterest" type="String" />
+						<fieldDefinition name="observedProperty" type="Group">
+							<fieldDefinitions>
+								<fieldDefinition name="definition" type="String" />
+								<fieldDefinition name="uom" type="String" />
+								<fieldDefinition name="value" type="Float" />
+							</fieldDefinitions>
+						</fieldDefinition>
+					</fieldDefinitions>
+				</fieldDefinition>
+			</fieldDefinitions>
+		</geoEventDefinition>
+	</geoEventDefinitions>
+
+</adapter>
