@@ -6,14 +6,14 @@
 
 	<parent>
 		<groupId>org.n52.sensorweb.parent</groupId>
-		<artifactId>sos</artifactId>
+		<artifactId>sos-ioos</artifactId>
 		<version>10.4.1</version>
 	</parent>
 
 	<groupId>org.n52.sensorweb</groupId>
-	<artifactId>sos-adapter</artifactId>
+	<artifactId>sos-ioos-adapter</artifactId>
 	<packaging>bundle</packaging>
-	<name>52north :: GeoEvent :: Adapter :: SOS</name>
+	<name>52north :: GeoEvent :: Adapter :: SOS :: IOOS</name>
 
 	<dependencies>
 	<!--  
@@ -48,7 +48,8 @@
 							net.opengis.gml,
 							net.opengis.om.x10,
 							net.opengis.sa.x10,
-							net.opengis.swe.x101
+							net.opengis.swe.x101,
+							net.opengis.swe.x20
 						</Export-Package>
 						<Embed-Dependency>
 							*;scope=compile|runtime;inline=true

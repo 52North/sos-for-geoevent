@@ -4,11 +4,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.n52.sensorweb.parent</groupId>
-	<artifactId>sos</artifactId>
+	<artifactId>sos-ioos</artifactId>
 	<version>10.4.1</version>
 	<packaging>pom</packaging>
 
-	<name>52north :: GeoEvent :: SOS</name>
+	<name>52north :: GeoEvent :: SOS :: IOOS</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

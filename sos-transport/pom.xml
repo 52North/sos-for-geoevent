@@ -6,14 +6,14 @@
 
 	<parent>
 		<groupId>org.n52.sensorweb.parent</groupId>
-		<artifactId>sos</artifactId>
+		<artifactId>sos-ioos</artifactId>
 		<version>10.4.1</version>
 	</parent>
 
 	<groupId>org.n52.sensorweb</groupId>
-	<artifactId>sos-transport</artifactId>
+	<artifactId>sos-ioos-transport</artifactId>
 	<packaging>bundle</packaging>
-	<name>52north :: GeoEvent :: Transport :: SOS</name>
+	<name>52north :: GeoEvent :: Transport :: SOS :: IOOS</name>
 
 	<dependencies>
 		<dependency>
