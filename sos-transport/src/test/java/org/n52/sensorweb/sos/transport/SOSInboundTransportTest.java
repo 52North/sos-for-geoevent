@@ -18,15 +18,15 @@ import net.opengis.om.x10.ObservationCollection;
 public class SOSInboundTransportTest {
 
 	@Test
-	public void TestRequest() throws JAXBException{
-		
+	public void TestRequest() throws JAXBException {
+
 		InputStream is = getClass().getResourceAsStream("test-obs.xml");
 
 		ObservationUnmarshaller unm = new ObservationUnmarshaller();
 		ObservationCollection coll = unm.readObservationCollection(is);
+		ObservationReader reader = new ObservationReader();
 		Assert.assertThat(coll.getMember(), CoreMatchers.notNullValue());
-		Assert.assertThat(coll.getMember().getObservation().getSamplingTime().getTimePeriod().getEndPosition(),
-				CoreMatchers.equalTo("2017-03-09T23:20:00.000Z"));
-		
+		Assert.assertThat(reader.getLatestSamplingTime(coll), CoreMatchers.equalTo("2017-03-09T23:20:00.000Z"));
+
 	}
 }
